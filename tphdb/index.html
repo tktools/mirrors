@@ -30,6 +30,11 @@
             padding: 0 0.75rem;
         }
     </style>
+    <style>
+        hcfy-result.__hcfy__result__both__ {
+            border: 1px dotted
+        }
+    </style>
 </head>
 
 <body>
@@ -42,6 +47,7 @@
         </div>
         <div id="encodeipt" class="pad2">
             选择文件 
+            <input type="file" multiple="">
             <input type="file" multiple="">
         </div>
         <div class="pad2">
@@ -71,6 +77,7 @@
         <div id="decodeipt" class="pad1">
             <button id="clear"> 清空 </button> 
             <input type="file" accept="image/png" multiple="">
+            <input type="file" accept="image/png" multiple="">
         </div>
         <div class="pad1">
             <span id="failbutton"
@@ -87,6 +94,7 @@
                 以下图片不是图片化打包!
             </div>
             <div></div>
+            <div></div>
         </div>
         <div id="pending" style="display: block;">
             <div class="pad1">
@@ -95,11 +103,14 @@
                  <span id="decodeinfo"></span>
             </div>
             <div></div>
+            <div></div>
         </div>
         <div id="assembling" style="display: none;">
             <div></div>
+            <div></div>
         </div>
         <div id="success" style="display: none;">
+            <div></div>
             <div></div>
         </div>
 
@@ -967,9 +978,17 @@
         }
     </script>
 
+
+    <div style="all: initial;">
+        <div style="all: initial;" id="__hcfy__"></div>
+    </div>
+
 </body>
 <div style="all: initial;">
     <div style="all: initial;" id="__hcfy__"></div>
+</div>
+<div style="all: initial;">
+    <div style="all: initial;"></div>
 </div>
 
 </html>
