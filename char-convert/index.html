@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<!--
+    char coded usage : codePoint
+    mask method : +1 every new char
+
+    Edit Date & time
+        2022/1/7 - 21:54
+-->
+
+<head>
+
+    <meta charset="UTF-8" name="viewport" content="minimum-scale=0">
+    <title>新语生成器</title>
+    <style>
+        body {
+            font-size: 28px;
+        }
+
+        button {
+            width: 200px;
+            height: 50px;
+            margin-left: 5px;
+            margin-right: 5px;
+            font-size: 30px;
+        }
+
+        div {
+            width: 80%;
+            border: 2px solid black;
+            word-wrap: break-word;
+        }
+
+        span.mark {
+            font-size: 40px;
+        }
+
+        details.know span {
+            font-size: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>新语生成器</h1>
+    <details class="know">
+        <summary>使用须知</summary>
+        <br />
+        <span>旧语的每个字符将会按比例转译成新语的每组字符，反之亦然</span><br />
+        <span>若输入的新语包括字符集中不存在的字符，会被过滤</span><br />
+        <span>字符集中的内容会被浏览器保存，参见LocalStorage</span><br />
+        <br />
+        <span>您写入框内的的东西可能不是正常的字符，包括且不限于:</span><br />
+        <span>- 看起来像字符的图片(例如复制来的emoji表情)</span><br />
+        <span>- 字符背景颜色</span><br />
+        <span>- 字符本体颜色</span><br />
+        <span>- 换行符</span><br />
+        <span>程序可能因此无法正常工作，请检查您的输入</span><br />
+        <br />
+        <span>若文本框内存在乱码，原因包括且不限于:</span><br />
+        <span>- 使用了错误的字符集</span><br />
+        <span>- 新语文本存在错误</span><br />
+        <span>- 多段新语一并翻译</span><br />
+        <span>- 您的操作系统或浏览器不支持对应字符</span><br />
+        <br />
+        <span>本程序使用以下权限:</span><br />
+        <span>- 运行脚本 text/javascript </span><br />
+        <span>- 本地存储 window.localStorage </span><br />
+        <span>- 复制到剪贴板 document.execCommand("copy") </span>
+    </details>
+    <hr />
+    <span class="mark">新语字符集</span>
+    <div id="CharList" style="min-height: 80px;" contenteditable="true" oninput="changeCharList()"></div>
+    <span id="change"></span>
+    <br />
+    <br />
+    <span class="mark">输入框</span>
+    <div id="InputText" style="min-height: 160px;" contenteditable="true"></div>
+    <br />
+    <button onclick="enCode()">辞旧迎新</button><button onclick="deCode()">反新复旧</button><button
+        onclick="CopyResult()">复制结果</button>
+    <br /><br />
+    <span class="mark">结果框</span>
+    <div id="OutputText" style="min-height: 160px;" contenteditable="false"></div>
+    <span id="issue"></span>
+    <div id="hidden" style="display: none;"></div>
+    <hr />
+    <details>
+        <summary>CodePoint字符集遍历(附属功能)</summary>
+        <span>从</span><input id="cptf" type="text" style="min-height: 40px;"><span>到</span><input id="cptt" type="text"
+            style="min-height: 40px;"><span>整数取值区间[0-1114111]</span>
+        <br />
+        <button onclick="traverseCodePoint()">获取</button>
+        <div id="cpto" style="min-height: 80px;" contenteditable="false"></div>
+    </details>
+
+</body>
+
+<script type="text/javascript">
+
+    const WL = window.localStorage;
+
+    {
+        let cl = WL.getItem("CharList");
+        dgi("CharList").innerText = cl;
+        dgi("change").innerText = "新旧长度比例: " + MCEA(cl);
+        changeIssue("待命中");
+    }
+
+    function changeCharList() {
+        let cl = dgi("CharList").innerText;
+        dgi("change").innerText = "新旧长度比例: " + MCEA(cl);
+        WL.setItem("CharList", cl);
+    }
+
+    function CopyResult() {
+        let to = document.createElement("input");
+        dgi("hidden").style.display = "block";
+        dgi("hidden").appendChild(to);
+        to.value = dgi("OutputText").innerText;
+        to.focus();
+        to.select();
+        document.execCommand("copy");
+        to.blur();
+        to.remove();
+        dgi("hidden").style.display = "none";
+        changeIssue("已复制到剪贴板");
+
+    }
+
+    function enCode() {
+        let ll = MCEA(dgi("CharList").innerText);
+        if (ll.constructor.name == "String") {
+            changeIssue(ll);
+            return;
+        }
+
+        let cl = toCPA(dgi("CharList").innerText);
+        let it = toCPA(dgi("InputText").innerText);
+
+        let buffer = new Array();
+        let bi = 0;
+        let mask = 0;
+
+        for (let iti = 0; iti < it.length; iti++) {
+
+            let cit = NTBA(cl.length, it[iti], ll);
+            for (let citi = 0; citi < cit.length; citi++) {
+                let cn = (cit[citi] + mask) % cl.length;
+                buffer[bi] = String.fromCodePoint(cl[cn]);
+                mask++;
+                bi++;
+            }
+        }
+
+
+        dgi("OutputText").innerText = buffer.join("");
+        changeIssue("完成编码");
+
+    }
+
+    function deCode() {
+        let ll = MCEA(dgi("CharList").innerText);
+        if (ll.constructor.name == "String") {
+            changeIssue(ll);
+            return;
+        }
+
+        let cl = toCPA(dgi("CharList").innerText);
+        let it = new Array();
+
+        let cit = toCPA(dgi("InputText").innerText);
+        let put = 0;
+
+        for (let citi = 0; citi < cit.length; citi++) {
+            for (let cli = 0; cli < cl.length; cli++)
+                if (cit[citi] == cl[cli]) {
+                    it[put] = cit[citi];
+                    put++
+                    break;
+                }
+        }
+
+        let mask = 0;
+        for (let iti = 0; iti < it.length; iti++) {
+            it[iti] = (cl.indexOf(it[iti]) + cl.length - mask) % cl.length;
+            mask++;
+        }
+
+        let result = new Array(Math.trunc(it.length / ll))
+        let r = 0;
+        let e = false;
+        try {
+            for (let c = 0; c < it.length; c += ll) {
+                let buffer = new Array(ll);
+                for (let b = 0; b < buffer.length; b++)
+                    buffer[b] = it[c + b];
+                result[r] = String.fromCodePoint(BATN(cl.length, buffer));
+                r++;
+            }
+        } catch (e) {
+            if (e.constructor.name == "RangeError")
+                changeIssue("错误文本");
+            else
+                changeIssue(e.stack);
+            e = true;
+        }
+
+        dgi("OutputText").innerText = result.join("");
+        if (e)
+            return;
+        if (Math.trunc(it.length / ll) != it.length / ll)
+            changeIssue("最后一个字符可能存在缺失");
+        else
+            changeIssue("完成解码");
+    }
+
+
+    function traverseCodePoint() {
+        dgi("cpto").innerText = "";
+        let f = Number.parseInt(dgi("cptf").value);
+        let t = Number.parseInt(dgi("cptt").value);
+        if (!Number.isSafeInteger(f) || !Number.isSafeInteger(t))
+            return;
+        if (f < 0 || f > 1114112 || t < f)
+            return;
+        let buffer = new Array(t - f + 1);
+        let b = 0;
+        for (let i = f; i <= t; i++) {
+            buffer[b] = String.fromCodePoint(i);
+            b++;
+        }
+        dgi("cpto").innerText = buffer.join("");
+    }
+
+
+    function dgi(id) {
+        return document.getElementById(id);
+    }
+
+    function changeIssue(msg) {
+        dgi("issue").innerText = "[" + new Date().toLocaleTimeString() + "] " + msg;
+    }
+
+    function MCEA(str) {
+        let m = toCPA(str);
+        if (m.length < 2)
+            return "编码字符数量不能低于2个";
+        for (let i1 = 0; i1 < m.length; i1++)
+            for (let i2 = 0; i2 < m.length; i2++)
+                if ((i1 != i2) && (m[i1] == m[i2]))
+                    return "编码字符不能重复";
+        return Math.ceil(Math.log2(1114112) / Math.log2(m.length));
+    }
+
+    function toCPA(str) {
+        let buffer = new Array();
+        let bi = 0;
+        for (let si = 0; si < str.length;) {
+            let cp = str.codePointAt(si);
+            buffer[bi] = cp;
+            bi++;
+            if (cp > 65535)
+                si += 2;
+            else
+                si += 1;
+        }
+
+        return buffer;
+    }
+
+    function toCPS(arr) {
+        let buffer = new Array(arr.length);
+        for (let i = 0; i < buffer.length; i++)
+            buffer[i] = String.fromCodePoint(arr[i]);
+        return buffer.join("");
+    }
+
+    function NTBA(base, number, min) {
+        let array = new Array(min);
+        let factor = number;
+        let bit = 0;
+        for (; factor > 0; bit++) {
+            let remainder = factor % base;
+            array[bit] = remainder;
+            factor = Number.parseInt(factor / base);
+        }
+        for (; bit < array.length; bit++)
+            array[bit] = 0;
+        return array;
+    }
+
+    function BATN(base, array) {
+        let num = 0;
+        for (i = 0; i < array.length; i++) {
+            num += Math.pow(base, i) * array[i];
+        }
+        return num;
+    }
+
+
+</script>
+
+</html>
