@@ -6,12 +6,12 @@
     mask method : +1 every new char
 
     Edit Date & time
-        2022/1/7 - 21:54
+        2022/1/13 - 15:58
 -->
 
 <head>
 
-    <meta charset="UTF-8" name="viewport" content="minimum-scale=0">
+    <meta charset="UTF-8" name="viewport" content="minimum-scale=0" width=device-width>
     <title>新语生成器</title>
     <style>
         body {
@@ -32,12 +32,16 @@
             word-wrap: break-word;
         }
 
+        input {
+            border: 2px solid black;
+        }
+
         span.mark {
             font-size: 40px;
         }
 
         details.know span {
-            font-size: 10px;
+            font-size: 12px;
         }
     </style>
 
@@ -46,8 +50,11 @@
 <body>
     <h1>新语生成器</h1>
     <details class="know">
+        <br />
         <summary>使用须知</summary>
         <br />
+        <span>本程序设计上仅在您主机的浏览器中运行，不会与任何后端联系</span><br />
+        <span>若您需要稳定使用本程序，可将该文件下载至设备离线使用</span><br />
         <span>旧语的每个字符将会按比例转译成新语的每组字符，反之亦然</span><br />
         <span>若输入的新语包括字符集中不存在的字符，会被过滤</span><br />
         <span>字符集中的内容会被浏览器保存，参见LocalStorage</span><br />
@@ -95,6 +102,8 @@
         <button onclick="traverseCodePoint()">获取</button>
         <div id="cpto" style="min-height: 80px;" contenteditable="false"></div>
     </details>
+    <hr />
+    <a id="doc" download="CharConvert.html">[下载此网页文件]</a>
 
 </body>
 
@@ -102,7 +111,11 @@
 
     const WL = window.localStorage;
 
+
+
     {
+        let w = "<!DOCTYPE " + "html>" + document.documentElement.outerHTML;
+        dgi("doc").href = URL.createObjectURL(new Blob([w], { type: "text/html" }))
         let cl = WL.getItem("CharList");
         dgi("CharList").innerText = cl;
         dgi("change").innerText = "新旧长度比例: " + MCEA(cl);
@@ -150,7 +163,7 @@
             for (let citi = 0; citi < cit.length; citi++) {
                 let cn = (cit[citi] + mask) % cl.length;
                 buffer[bi] = String.fromCodePoint(cl[cn]);
-                mask++;
+                mask = (mask + 1) % cl.length;
                 bi++;
             }
         }
@@ -186,7 +199,7 @@
         let mask = 0;
         for (let iti = 0; iti < it.length; iti++) {
             it[iti] = (cl.indexOf(it[iti]) + cl.length - mask) % cl.length;
-            mask++;
+            mask = (mask + 1) % cl.length;
         }
 
         let result = new Array(Math.trunc(it.length / ll))
