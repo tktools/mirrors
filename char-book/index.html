@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="minimum-scale=0" width=device-width>
+    <title>字符字典</title>
+    <style>
+        body {
+            font-size: 28px;
+        }
+
+        button {
+            width: 200px;
+            height: 50px;
+            margin-left: 5px;
+            margin-right: 5px;
+            font-size: 30px;
+        }
+
+        div {
+            width: 90%;
+            border: 2px solid black;
+            word-wrap: break-word;
+        }
+
+        input {
+            border: 2px solid black;
+            height: 28px;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <h1 style="text-align: center;">字符字典</h1>
+    <hr/>
+    <span>每页字符数量</span><input id="length" type="number" value="1000"><span>从0到1114111</span>
+    <br/>
+    <button onclick="back()">上一页</button><button onclick="refresh()">刷新</button><button onclick="next()">下一页</button>
+    <br/>
+    <span id="state"></span>
+    <div id="display" style="min-height: 160px;"></div>
+</body>
+
+<script>
+
+    var from = 0;
+    var to = getLength();
+
+    {
+        toPrint();
+    }
+
+    function getLength() {
+        return Number.parseInt(document.getElementById("length").value);
+    }
+
+    function back() {
+        from = from - getLength();
+        if(from < 0)
+            from = 0;
+        to = from + getLength();
+        if(to > 1114111)
+            to = 1114111;
+        toPrint();
+    }
+
+    function next() {
+        from = from + getLength();
+        if(from < 0)
+            from = 0;
+        to = from + getLength();
+        if(to > 1114111)
+            to = 1114111;
+        toPrint();
+    }
+
+    function refresh() {
+        to = from + getLength();
+        if(to > 1114111)
+            to = 1114111;
+        toPrint();
+    }
+
+    function toPrint() {
+        document.getElementById("state").innerText = "< processing... >";
+        let buffer = new Array(to - from);
+        let bi = 0;
+        for(let cp = from; cp < to; cp++)
+        {
+            buffer[bi] = cp;
+            bi++;
+        }
+        setTimeout( function () {
+            document.getElementById("display").innerText = String.fromCodePoint(...buffer);
+            document.getElementById("state").innerText = "< "+ from +" -- "+ to +" >";
+        },10);
+        
+    }
+
+</script>
+
+</html>
